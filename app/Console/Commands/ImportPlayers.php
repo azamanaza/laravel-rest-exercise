@@ -15,22 +15,13 @@ class ImportPlayers extends Command
      */
     protected $signature = 'player:import';
 
+    private $importPlayerJob;
     /**
      * The console command description.
      *
      * @var string
      */
     protected $description = 'Command to run import player Job';
-
-    /**
-     * Create a new command instance.
-     *
-     * @return void
-     */
-    public function __construct()
-    {
-        parent::__construct();
-    }
 
     /**
      * Execute the console command.

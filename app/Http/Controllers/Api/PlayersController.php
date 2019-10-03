@@ -8,6 +8,11 @@ use App\Models\PlayerModel;
 
 class PlayersController extends Controller
 {
+    private $playerModel;
+
+    public function __construct(PlayerModel $playerModel) {
+        $this->playerModel = $playerModel;
+    }
     /**
      * Display a listing of the resource.
      *
@@ -15,7 +20,7 @@ class PlayersController extends Controller
      */
     public function index()
     {
-        return PlayerModel::all('id','first_name', 'second_name')->toJson();
+        return $this->playerModel::all('id','first_name', 'second_name')->toJson();
     }
 
     /**
@@ -26,7 +31,7 @@ class PlayersController extends Controller
      */
     public function show($id)
     {
-        return PlayerModel::where('id', $id)->toJson();
+        return $this->playerModel::find($id)->toJson();
     }
 
 }

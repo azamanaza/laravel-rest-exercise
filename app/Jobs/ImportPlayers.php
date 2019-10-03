@@ -8,20 +8,30 @@ use GuzzleHttp\Psr7\Request;
 
 class ImportPlayers {
 
+    private $client;
+    private $playerModel;
+
+    public function __construct(Client $client = null, PlayerModel $playerModel = null) {
+        if ($client) {
+            $this->client = $client;
+        }
+
+        if ($playerModel) {
+            $this->playerModel = $playerModel;
+        }
+    }
     public function __invoke() {
         $data = $this->getData();
-        // var_dump($data);
         $this->insertToDb($data);
     }
 
     private function getData() {
-        $httpClient = new Client();
         $options = [
             'headers' => [
                 'User-Agent' => 'PHP/Laravel/fantasyfootball'
             ]
         ];
-        $res = $httpClient->request('GET', config('app.import_players.url'), $options);
+        $res = $this->getClient()->request('GET', config('app.import_players.url'), $options);
         $data = $this->parseResponse($res);
         return $data[config('app.import_players.prop')];
     }
@@ -34,13 +44,28 @@ class ImportPlayers {
     }
 
     private function insertToDb($data) {
+        $model = $this->getModel();
         $allPlayerIds = array_map(function($player){
             return $player['id'];
-        }, PlayerModel::all(['id'])->toArray());
+        }, $model::all(['id'])->toArray());
         $data = array_filter($data, function($player) use ($allPlayerIds) {
             return !in_array($player['id'], $allPlayerIds);
         });
         $next100 = array_slice($data, 0, 100);
-        return (new PlayerModel())->bulkUpsert(array_slice($data, 0, 100));
+        return $model->bulkUpsert(array_slice($data, 0, 100));
+    }
+
+    private function getClient() {
+        if (! $this->client) {
+            $this->client = new Client();
+        }
+        return $this->client;
+    }
+
+    private function getModel() {
+        if (! $this->playerModel) {
+            $this->playerModel = new PlayerModel();
+        }
+        return $this->playerModel;
     }
 }
